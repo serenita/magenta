@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Quic Demo</title>
+
+    <style>
+      .container {
+        display: grid;
+        grid-template-areas: 'one two';
+        grid-template-columns: 1fr 1fr;
+      }
+      iframe {
+        border: none;
+      }
+      #one {
+        grid-area: one;
+        width: 100%;
+        height: 80vh;
+        box-sizing: border-box;
+      }
+      #two {
+        width: 100%;
+        grid-area: two;
+        height: 80vh;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <button type="button" onclick="start()">Start</button>
+    <h2>HTTP/1.0: <span id="time1"></span></h2>
+    <h2>QUIC: <span id="time2"></span></h2>
+    <div class="container"><iframe id="one"></iframe> <iframe id="two"></iframe></div>
+
+    <script>
+      let one = document.getElementById('one');
+      let two = document.getElementById('two');
+      let start1, start2;
+
+      function start() {
+        one.onload = function() {
+          document.getElementById('time1').textContent = Math.round(performance.now() - start1) + 'ms';
+          setTimeout(function() {
+            start2 = performance.now();
+            two.src = 'https://www.quic-magenta.tk:7000/test-pages/many-images.html';
+          }, 1500);
+        };
+        two.onload = function() {
+          document.getElementById('time2').textContent = Math.round(performance.now() - start2) + 'ms';
+        };
+        start1 = performance.now();
+        one.src = 'https://www.quic-magenta.tk:8000/test-pages/many-images.html';
+      }
+    </script>
+  </body>
+</html>

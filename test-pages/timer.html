@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+
+    <style>
+      .container {
+        display: grid;
+        grid-template-areas: 'controlls iframe';
+        grid-template-columns: 500px auto;
+      }
+      .controlls {
+        grid-area: controlls;
+      }
+      #time {
+        height: 80vh;
+        overflow: scroll;
+      }
+      #iframe {
+        grid-area: iframe;
+        border: 5px solid lightblue;
+        width: 100%;
+        height: 80vh;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Quic loading timer</h1>
+    <div class="container">
+      <div class="controlls">
+        <input type="number" value="10" id="repeats" /> <button type="button" onclick="start()">Start</button>
+        <button type="button" onclick="cancel()">Cancel</button>
+        <button type="button" onclick="copy()">Copy results</button>
+        <h3 id="remaining"></h3>
+        <pre id="time"></pre>
+      </div>
+      <iframe id="iframe"></iframe>
+    </div>
+
+    <script>
+      const pages = [
+        'simple-tiny',
+        'simple-small',
+        'simple-medium',
+        'simple-large',
+        'multiple-small',
+        'multiple-large',
+        'many-js',
+        'many-images',
+      ];
+      const server = [
+        'https://quic-magenta.tk:4200',
+        'https://www.quic-magenta.tk:7000',
+        'https://www.quic-magenta.tk:8000',
+      ];
+      let todo = [];
+      let current = null;
+      let startTime = null;
+
+      let iframe = document.getElementById('iframe');
+      iframe.onload = function() {
+        if (startTime !== null) {
+          let endTime = performance.now();
+          document.getElementById('time').textContent += current + ' - ' + Math.round(endTime - startTime) + '\n';
+          measureNext();
+        }
+      };
+
+      function start() {
+        const repeats = document.getElementById('repeats').value;
+        for (let i = 0; i < repeats; i++) {
+          todo.push('break');
+          for (let page of shuffle(pages)) {
+            for (let srv of shuffle(server)) {
+              todo.push(srv + '/test-pages/' + page + '.html');
+            }
+          }
+        }
+        measureNext();
+      }
+
+      function measureNext() {
+        if (todo.length > 0) {
+          current = todo.pop();
+          document.getElementById('remaining').textContent = 'Remaining tests: ' + todo.length;
+          if (current == 'break') {
+            setTimeout(measureNext, 5000);
+            return;
+          }
+          startTime = performance.now();
+          iframe.contentWindow.location.href = current;
+        }
+      }
+
+      function cancel() {
+        todo = [];
+      }
+
+      function copy() {
+        let node = document.getElementById('time');
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.execCommand('copy');
+      }
+
+      function shuffle(array) {
+        var currentIndex = array.length,
+          temporaryValue,
+          randomIndex;
+
+        while (0 !== currentIndex) {
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex -= 1;
+
+          temporaryValue = array[currentIndex];
+          array[currentIndex] = array[randomIndex];
+          array[randomIndex] = temporaryValue;
+        }
+
+        return array;
+      }
+    </script>
+  </body>
+</html>
